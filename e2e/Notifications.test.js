@@ -3,7 +3,7 @@ const {elementByLabel} = Utils;
 
 describe('Notifications', () => {
   beforeEach(async () => {
-    await device.launchApp({delete: true, permissions: {notifications: 'YES'}});
+    await device.relaunchApp({delete: true, permissions: {notifications: 'YES'}});
   });
 
   describe('Foreground', () => {

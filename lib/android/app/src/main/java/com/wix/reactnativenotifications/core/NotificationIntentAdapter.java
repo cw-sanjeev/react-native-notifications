@@ -14,21 +14,22 @@ public class NotificationIntentAdapter {
 
     @SuppressLint("UnspecifiedImmutableFlag")
     public static PendingIntent createPendingNotificationIntent(Context appContext, PushNotificationProps notification) {
-        if (canHandleTrampolineActivity(appContext)) {
-            Intent intent = new Intent(appContext, ProxyService.class);
-            intent.putExtra(PUSH_NOTIFICATION_EXTRA_NAME, notification.asBundle());
-            return PendingIntent.getService(appContext, (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_ONE_SHOT);
-        } else {
-            Intent mainActivityIntent = appContext.getPackageManager().getLaunchIntentForPackage(appContext.getPackageName());
-            mainActivityIntent.putExtra(PUSH_NOTIFICATION_EXTRA_NAME, notification.asBundle());
-            TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(appContext);
-            taskStackBuilder.addNextIntentWithParentStack(mainActivityIntent);
-            return taskStackBuilder.getPendingIntent((int) System.currentTimeMillis(), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
-        }
+        // if (cannotHandleTrampolineActivity(appContext)) {
+        //     Intent intent = appContext.getPackageManager().getLaunchIntentForPackage(appContext.getPackageName());
+        //     intent.putExtra(PUSH_NOTIFICATION_EXTRA_NAME, notification.asBundle());
+        //     return PendingIntent.getActivity(appContext, (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+        // } else {
+        //     Intent intent = new Intent(appContext, ProxyService.class);
+        //     intent.putExtra(PUSH_NOTIFICATION_EXTRA_NAME, notification.asBundle());
+        //     return PendingIntent.getService(appContext, (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_ONE_SHOT);
+        // }
+        Intent intent = appContext.getPackageManager().getLaunchIntentForPackage(appContext.getPackageName());
+        intent.putExtra(PUSH_NOTIFICATION_EXTRA_NAME, notification.asBundle());
+        return PendingIntent.getActivity(appContext, (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
     }
 
-    public static boolean canHandleTrampolineActivity(Context appContext) {
-        return android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R || appContext.getApplicationInfo().targetSdkVersion < 31;
+    public static boolean cannotHandleTrampolineActivity(Context appContext) {
+        return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && appContext.getApplicationInfo().targetSdkVersion >= 31;
     }
 
     public static Bundle extractPendingNotificationDataFromIntent(Intent intent) {
@@ -37,7 +38,8 @@ public class NotificationIntentAdapter {
 
     public static boolean canHandleIntent(Intent intent) {
         if (intent != null) {
-            Bundle notificationData = intent.getExtras();
+            Bundle notificationData = NotificationIntentAdapter.cannotHandleTrampolineActivity(appContext) ?
+                    NotificationIntentAdapter.extractPendingNotificationDataFromIntent(intent) : intent.getExtras();
             return notificationData != null &&
                     (intent.hasExtra(PUSH_NOTIFICATION_EXTRA_NAME) ||
                             notificationData.getString("google.message_id", null) != null);

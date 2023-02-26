@@ -176,7 +176,7 @@ public class PushNotification implements IPushNotification {
 
     private void setUpIconColor(Notification.Builder notification) {
         int colorResID = getAppResourceId("colorAccent", "color");
-        if (colorResID != 0) {
+        if (colorResID != 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             int color = mContext.getResources().getColor(colorResID);
             notification.setColor(color);
         }
@@ -213,7 +213,7 @@ public class PushNotification implements IPushNotification {
     }
 
     protected void launchOrResumeApp() {
-        if (NotificationIntentAdapter.canHandleTrampolineActivity(mContext)) {
+        if (!NotificationIntentAdapter.cannotHandleTrampolineActivity(mContext)) {
             final Intent intent = mAppLaunchHelper.getLaunchIntent(mContext);
             mContext.startActivity(intent);
         }
@@ -225,15 +225,11 @@ public class PushNotification implements IPushNotification {
 
     private void initDefaultChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            final NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            if (notificationManager.getNotificationChannels().size() == 0) {
-                NotificationChannel defaultChannel = new NotificationChannel(
-                    DEFAULT_CHANNEL_ID,
+            NotificationChannel defaultChannel = new NotificationChannel(DEFAULT_CHANNEL_ID,
                     DEFAULT_CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_DEFAULT
-                );
-                notificationManager.createNotificationChannel(defaultChannel);
-            }
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            final NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(defaultChannel);
         }
     }
 }

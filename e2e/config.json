@@ -1,8 +1,6 @@
 {
-  "maxWorkers": 1,
-  "testEnvironment": "./environment",
-  "testRunner": "jest-circus/runner",
-  "testTimeout": 120000,
-  "reporters": ["detox/runners/jest/streamlineReporter"],
+  "setupTestFrameworkScriptFile" : "./init.js",
+  "testEnvironment": "node",
+  "bail": true,
   "verbose": true
 }
