@@ -63,7 +63,7 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
     @Override
     public void onNewIntent(Intent intent) {
         if (NotificationIntentAdapter.canHandleIntent(intent)) {
-            Bundle notificationData = intent.getExtras();
+            Bundle notificationData = NotificationIntentAdapter.extractPendingNotificationDataFromIntent(intent);
             final IPushNotification notification = PushNotification.get(getReactApplicationContext().getApplicationContext(), notificationData);
             if (notification != null) {
                 notification.onOpened();
@@ -89,7 +89,6 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
             }
 
             result = Arguments.fromBundle(notification.asBundle());
-            InitialNotificationHolder.getInstance().clear();
         } catch (NullPointerException e) {
             Log.e(LOGTAG, "getInitialNotification: Null pointer exception");
         } finally {
