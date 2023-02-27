@@ -1,5 +1,7 @@
 package com.wix.reactnativenotifications;
 
+import static com.wix.reactnativenotifications.Defs.LOGTAG;
+
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
@@ -28,15 +30,16 @@ import com.wix.reactnativenotifications.core.notificationdrawer.IPushNotificatio
 import com.wix.reactnativenotifications.core.notificationdrawer.PushNotificationsDrawer;
 import com.wix.reactnativenotifications.fcm.FcmInstanceIdRefreshHandlerService;
 
-import static com.wix.reactnativenotifications.Defs.LOGTAG;
-
 public class RNNotificationsModule extends ReactContextBaseJavaModule implements ActivityEventListener {
+
+    private Application application;
 
     public RNNotificationsModule(Application application, ReactApplicationContext reactContext) {
         super(reactContext);
         if (AppLifecycleFacadeHolder.get() instanceof ReactAppLifecycleFacade) {
             ((ReactAppLifecycleFacade) AppLifecycleFacadeHolder.get()).init(reactContext);
         }
+        this.application = application;
 
         reactContext.addActivityEventListener(this);
     }
@@ -48,7 +51,7 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
 
     @Override
     public void initialize() {
-        if(BuildConfig.DEBUG) Log.d(LOGTAG, "Native module init");
+        if (BuildConfig.DEBUG) Log.d(LOGTAG, "Native module init");
         startFcmIntentService(FcmInstanceIdRefreshHandlerService.EXTRA_IS_APP_INIT);
 
         final IPushNotificationsDrawer notificationsDrawer = PushNotificationsDrawer.get(getReactApplicationContext().getApplicationContext());
@@ -63,9 +66,10 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
     @Override
     public void onNewIntent(Intent intent) {
         if (NotificationIntentAdapter.canHandleIntent(intent)) {
-            Bundle notificationData = NotificationIntentAdapter.extractPendingNotificationDataFromIntent(intent);
+            Bundle notificationData = NotificationIntentAdapter.cannotHandleTrampolineActivity(application) ? NotificationIntentAdapter.extractPendingNotificationDataFromIntent(intent) : intent.getExtras();
             final IPushNotification notification = PushNotification.get(getReactApplicationContext().getApplicationContext(), notificationData);
             if (notification != null) {
+                intent.putExtra(Defs.IS_INTENT_HANDLED, true);
                 notification.onOpened();
             }
         }
@@ -73,13 +77,13 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
 
     @ReactMethod
     public void refreshToken() {
-        if(BuildConfig.DEBUG) Log.d(LOGTAG, "Native method invocation: refreshToken()");
+        if (BuildConfig.DEBUG) Log.d(LOGTAG, "Native method invocation: refreshToken()");
         startFcmIntentService(FcmInstanceIdRefreshHandlerService.EXTRA_MANUAL_REFRESH);
     }
 
     @ReactMethod
     public void getInitialNotification(final Promise promise) {
-        if(BuildConfig.DEBUG) Log.d(LOGTAG, "Native method invocation: getInitialNotification");
+        if (BuildConfig.DEBUG) Log.d(LOGTAG, "Native method invocation: getInitialNotification");
         Object result = null;
 
         try {
@@ -89,8 +93,6 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
             }
 
             result = Arguments.fromBundle(notification.asBundle());
-        } catch (NullPointerException e) {
-            Log.e(LOGTAG, "getInitialNotification: Null pointer exception");
         } finally {
             promise.resolve(result);
         }
@@ -98,7 +100,7 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
 
     @ReactMethod
     public void postLocalNotification(ReadableMap notificationPropsMap, int notificationId) {
-        if(BuildConfig.DEBUG) Log.d(LOGTAG, "Native method invocation: postLocalNotification");
+        if (BuildConfig.DEBUG) Log.d(LOGTAG, "Native method invocation: postLocalNotification");
         final Bundle notificationProps = Arguments.toBundle(notificationPropsMap);
         final IPushNotification pushNotification = PushNotification.get(getReactApplicationContext().getApplicationContext(), notificationProps);
         pushNotification.onPostRequest(notificationId);
@@ -112,9 +114,9 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
 
     @ReactMethod
     public void setCategories(ReadableArray categories) {
-    
+
     }
-    
+
     public void cancelDeliveredNotification(String tag, int notificationId) {
         IPushNotificationsDrawer notificationsDrawer = PushNotificationsDrawer.get(getReactApplicationContext().getApplicationContext());
         notificationsDrawer.onNotificationClearRequest(tag, notificationId);
@@ -126,7 +128,8 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
         promise.resolve(new Boolean(hasPermission));
     }
 
-    @ReactMethod void removeAllDeliveredNotifications() {
+    @ReactMethod
+    void removeAllDeliveredNotifications() {
         IPushNotificationsDrawer notificationsDrawer = PushNotificationsDrawer.get(getReactApplicationContext().getApplicationContext());
         notificationsDrawer.onAllNotificationsClearRequest();
     }
