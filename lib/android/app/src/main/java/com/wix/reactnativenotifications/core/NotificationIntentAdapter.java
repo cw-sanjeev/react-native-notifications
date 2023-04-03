@@ -14,6 +14,8 @@ import com.wix.reactnativenotifications.core.notification.PushNotificationProps;
 public class NotificationIntentAdapter {
     private static final String PUSH_NOTIFICATION_EXTRA_NAME = "pushNotification";
 
+    private Application application;
+
     @SuppressLint("UnspecifiedImmutableFlag")
     public static PendingIntent createPendingNotificationIntent(Context appContext, PushNotificationProps notification) {
         if (cannotHandleTrampolineActivity(appContext)) {
@@ -32,16 +34,17 @@ public class NotificationIntentAdapter {
         if (NotificationIntentAdapter.cannotHandleTrampolineActivity(appContext)) {
             intent = appContext.getPackageManager().getLaunchIntentForPackage(appContext.getPackageName());
             intent.putExtra(PUSH_NOTIFICATION_EXTRA_NAME, notification.asBundle());
+            intent.putExtra(Defs.IS_INTENT_HANDLED, false);
         } else {
             intent = appLaunchHelper.getLaunchIntent(appContext);
             intent.putExtra(PUSH_NOTIFICATION_EXTRA_NAME, notification.asBundle());
+            intent.putExtra(Defs.IS_INTENT_HANDLED, false);
         }
-        intent.putExtra(Defs.IS_INTENT_HANDLED, false);
         return intent;
     }
 
     public static boolean cannotHandleTrampolineActivity(Context appContext) {
-        return cannotHandleTrampolineActivity() && appContext.getApplicationInfo().targetSdkVersion >= 31;
+        return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R && appContext.getApplicationInfo().targetSdkVersion >= 31;
     }
 
     public static boolean cannotHandleTrampolineActivity() {

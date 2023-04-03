@@ -1,7 +1,6 @@
 #import <React/RCTEventEmitter.h>
 
 static NSString* const RNRegistered                  = @"remoteNotificationsRegistered";
-static NSString* const RNRegistrationDenied          = @"remoteNotificationsRegistrationDenied";
 static NSString* const RNRegistrationFailed          = @"remoteNotificationsRegistrationFailed";
 static NSString* const RNPushKitRegistered           = @"pushKitRegistered";
 static NSString* const RNNotificationReceived        = @"notificationReceived";

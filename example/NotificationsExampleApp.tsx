@@ -21,7 +21,7 @@ export default function NotificationsExampleApp() {
   useEffect(() => {
     registerNotificationEvents();
     setCategories();
-    getInitialNotification();
+    getInitialNotifaction();
   }, [])
 
   const registerNotificationEvents = () => {    
@@ -121,7 +121,7 @@ export default function NotificationsExampleApp() {
     })
   }
 
-  const getInitialNotification = async () => {
+  const getInitialNotifaction = async () => {
     const initialNotification = await Notifications.getInitialNotification();
     if (initialNotification) {
       setNotifications([initialNotification, ...notifications]);
@@ -174,7 +174,7 @@ export default function NotificationsExampleApp() {
       }
       <Button title={'Send local notification'} onPress={sendLocalNotification} testID={'sendLocalNotification'} />
       <Button title={'Remove all delivered notifications'} onPress={removeAllDeliveredNotifications} />
-      <Button title={'Check registration'} onPress={isRegistered} />
+      <Button title={'Check registeration'} onPress={isRegistered} />
       {notifications.map((notification, idx) => (
         <View key={`notification_${idx}`}>
           {renderNotification(notification)}
