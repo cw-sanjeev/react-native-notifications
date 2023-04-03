@@ -1,4 +1,3 @@
-#import "RNEventEmitter.h"
 #import "RNNotificationCenter.h"
 #import "RCTConvert+RNNotifications.h"
 
@@ -40,9 +39,6 @@
                     });
                 }
             }];
-        }
-        if (!error && !granted) {
-          [RNEventEmitter sendEvent:RNRegistrationDenied body:nil];
         }
     }];
 }

@@ -32,11 +32,14 @@ import com.wix.reactnativenotifications.fcm.FcmInstanceIdRefreshHandlerService;
 
 public class RNNotificationsModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
+    private Application application;
+
     public RNNotificationsModule(Application application, ReactApplicationContext reactContext) {
         super(reactContext);
         if (AppLifecycleFacadeHolder.get() instanceof ReactAppLifecycleFacade) {
             ((ReactAppLifecycleFacade) AppLifecycleFacadeHolder.get()).init(reactContext);
         }
+        this.application = application;
 
         reactContext.addActivityEventListener(this);
     }
