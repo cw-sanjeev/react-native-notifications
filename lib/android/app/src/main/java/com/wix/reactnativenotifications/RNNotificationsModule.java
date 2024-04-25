@@ -37,7 +37,6 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
         if (AppLifecycleFacadeHolder.get() instanceof ReactAppLifecycleFacade) {
             ((ReactAppLifecycleFacade) AppLifecycleFacadeHolder.get()).init(reactContext);
         }
-
         reactContext.addActivityEventListener(this);
     }
 
@@ -63,9 +62,10 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
     @Override
     public void onNewIntent(Intent intent) {
         if (NotificationIntentAdapter.canHandleIntent(intent)) {
-            Bundle notificationData = intent.getExtras();
+            Bundle notificationData = NotificationIntentAdapter.cannotHandleTrampolineActivity(application) ? NotificationIntentAdapter.extractPendingNotificationDataFromIntent(intent) : intent.getExtras();
             final IPushNotification notification = PushNotification.get(getReactApplicationContext().getApplicationContext(), notificationData);
             if (notification != null) {
+                intent.putExtra(Defs.IS_INTENT_HANDLED, true);
                 notification.onOpened();
             }
         }
@@ -89,9 +89,6 @@ public class RNNotificationsModule extends ReactContextBaseJavaModule implements
             }
 
             result = Arguments.fromBundle(notification.asBundle());
-            InitialNotificationHolder.getInstance().clear();
-        } catch (NullPointerException e) {
-            Log.e(LOGTAG, "getInitialNotification: Null pointer exception");
         } finally {
             promise.resolve(result);
         }
